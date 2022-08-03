@@ -1,64 +1,56 @@
 const express = require('express');
 const app = express();
 const Joi = require('joi');
+const genres = require('./routes/genres');
+const home = require('./routes/home');
+const mogoose = require('mongoose');
+const { default: mongoose } = require('mongoose');
+
 require('dotenv').config();
-app.use(express.json());
 const port = process.env.PORT || 3500;
+const dbcon = process.env.MONGODB_CONNECTION;
 
-const genres = [
-  { id: 1, name: 'Romance' },
-  { id: 2, name: 'Horror' },
-];
+mongoose
+  .connect(dbcon)
+  .then(() => {
+    console.log('connection successful');
+  })
+  .catch((err) => console.log('could not connect to mongo dB', err));
 
-app.get('/api/genres', (req, res) => {
-  res.send(genres);
+app.use(express.json());
+app.use('/api/genres', genres);
+app.use('/', home);
+
+const movieSchema = new mongoose.Schema({
+  name: { type: String },
+  genre: String,
+  date: { type: Date, default: Date.now },
+  quality: [String],
+  isReleased: Boolean,
 });
 
-app.get('/api/genres/:id', (req, res) => {
-  const genre = genres.find((g) => g.id === parseInt(req.params.id));
-  if (!genre) return res.status(404).send('genre of that ID no found');
+const Movies = mongoose.model('Movies', movieSchema);
 
-  res.send(genre);
-});
+// async function createMovie() {
+//   const movie = new Movies({
+//     name: 'Alpha',
+//     genre: 'Comedy',
+//     quality: ['720p', '1080p'],
+//     isReleased: true,
+//   });
+//   const result = await movie.save();
+//   console.log(result);
+// }
+// createMovie();
 
-app.post('/api/genres', (req, res) => {
-  const { error } = validateGenre(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-
-  const genre = {
-    id: genres.length + 1,
-    name: req.body.name,
-  };
-  genres.push(genre);
-  res.send(genre);
-});
-
-app.put('/api/genres/:id', (req, res) => {
-  const genre = genres.find((g) => g.id === parseInt(req.params.id));
-  if (!genre) return res.status(404).send('Id not found');
-
-  const { error } = validateGenre(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
-
-  genre.name = req.body.name;
-  res.send(genre);
-});
-
-app.delete('/api/genres/:id', (req, res) => {
-  const genre = genres.find((g) => g.id === parseInt(req.params.id));
-  if (!genre) return res.status(404).send('Id not found');
-
-  const index = genres.indexOf(genre);
-  genres.splice(index, 1);
-  res.send(genre);
-});
+async function getMovie() {
+  const movie = await Movies.find({ isReleased: true })
+    .sort({ name: 1 })
+    .limit(3)
+    .select(['name', 'genre']);
+  console.log(movie);
+}
+getMovie();
 app.listen(port, () => {
   console.log(`listening to port ${port}`);
 });
-
-function validateGenre(genre) {
-  const schema = Joi.object({
-    name: Joi.string().min(3).max(25).required(),
-  });
-  return schema.validate(genre);
-}
