@@ -4,6 +4,8 @@ const genres = require('./routes/genres');
 const home = require('./routes/home');
 const mongoose = require('mongoose');
 const customer = require('./routes/customers');
+const movie = require('./routes/movies');
+const rental = require('./routes/rentals');
 
 require('dotenv').config();
 const port = process.env.PORT || 3500;
@@ -20,7 +22,8 @@ app.use(express.json());
 app.use('/api/genres', genres);
 app.use('/', home);
 app.use('/api/customers', customer);
-
+app.use('/api/movies', movie);
+app.use('/api/rentals', rental);
 app.listen(port, () => {
   console.log(`listening to port ${port}`);
 });
