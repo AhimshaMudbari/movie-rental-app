@@ -6,6 +6,8 @@ const mongoose = require('mongoose');
 const customer = require('./routes/customers');
 const movie = require('./routes/movies');
 const rental = require('./routes/rentals');
+const Joi = require('joi');
+Joi.objectId = require('joi-objectid')(Joi);
 
 require('dotenv').config();
 const port = process.env.PORT || 3500;
