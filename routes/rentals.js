@@ -3,6 +3,11 @@ const { Customer } = require('../models/customer');
 const { Movie } = require('../models/movie');
 const router = express.Router();
 const { Rental, validateRental } = require('../models/rental');
+// const Fawn = require('fawn');
+// require('dotenv').config();
+
+// const con = process.env.MONGODB_FAWN;
+// Fawn.init(con);
 
 router.get('/', async (req, res) => {
   const rental = await Rental.find().sort('-dateOut');
@@ -22,7 +27,7 @@ router.post('/', async (req, res) => {
 
   if (movie.numberInStock === 0)
     return res.status(400).send('there is no any movie in stock');
-  let rental = new Rental({
+  const rental = new Rental({
     customer: {
       _id: customer._id,
       name: customer.name,
@@ -34,7 +39,26 @@ router.post('/', async (req, res) => {
       dailyRentalRate: movie.dailyRentalRate,
     },
   });
-  rental = await rental.save();
+  // try {
+  //   new Fawn.Task()
+  //     .save('rentals', rental)
+  //     .update(
+  //       'movies',
+  //       {
+  //         _id: movie._id,
+  //       },
+  //       {
+  //         $inc: {
+  //           numberInStock: -1,
+  //         },
+  //       }
+  //     )
+  //     .run();
+  //   res.send(rental);
+  // } catch (e) {
+  //   res.status(500).send('something went wrong ', e);
+  // }
+  await rental.save();
   movie.numberInStock--;
   movie.save();
   res.send(rental);
