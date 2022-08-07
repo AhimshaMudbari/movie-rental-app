@@ -14,13 +14,13 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const { error } = validateCustomer(req.body);
   if (error) return res.status(400).send(error.details[0].message);
-  let customers = new Customer({
+  const customers = new Customer({
     name: req.body.name,
     isGold: req.body.isGold,
     phone: req.body.phone,
   });
   try {
-    customers = await customers.save();
+    await customers.save();
     res.send(customers);
   } catch (e) {
     res.send(e.message);
