@@ -9,6 +9,9 @@ const rental = require('./routes/rentals');
 const Joi = require('joi');
 const user = require('./routes/users');
 const login = require('./routes/login');
+const error = require('./middleware/error');
+require('express-async-errors');
+
 Joi.objectId = require('joi-objectid')(Joi);
 
 require('dotenv').config();
@@ -35,6 +38,9 @@ app.use('/api/movies', movie);
 app.use('/api/rentals', rental);
 app.use('/api/users', user);
 app.use('/api/login', login);
+
+app.use(error);
+
 app.listen(port, () => {
   console.log(`listening to port ${port}`);
 });
