@@ -10,11 +10,15 @@ const Joi = require('joi');
 const user = require('./routes/users');
 const login = require('./routes/login');
 const error = require('./middleware/error');
+const { format } = require('winston');
+const { timestamp, prettyPrint, combine } = format;
+const winston = require('winston');
+require('winston-mongodb');
+
 require('express-async-errors');
-
 Joi.objectId = require('joi-objectid')(Joi);
-
 require('dotenv').config();
+
 const port = process.env.PORT || 3500;
 const dbcon = process.env.MONGODB_CONNECTION;
 const jwtToken = process.env.JWTSECRET;
@@ -24,11 +28,37 @@ if (!jwtToken) {
   process.exit(1);
 }
 mongoose
-  .connect(dbcon)
+  .connect(dbcon, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log('connection successful');
   })
   .catch((err) => console.log('could not connect to mongo dB', err));
+
+winston.add(
+  new winston.transports.File({
+    filename: 'logFile.log',
+    level: 'info',
+    format: combine(timestamp(), prettyPrint()),
+  })
+);
+winston.add(
+  new winston.transports.MongoDB({
+    db: process.env.MONGODB_CONNECTION,
+    options: { useUnifiedTopology: true },
+  })
+);
+
+process.on('uncaughtException', (ex) => {
+  winston.error(ex.message, ex);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (e) => {
+  winston.error(e.message, e);
+  process.exit(1);
+});
+
+// const p = Promise.reject(new Error('rejected piece'));
 
 app.use(express.json());
 app.use('/api/genres', genres);
