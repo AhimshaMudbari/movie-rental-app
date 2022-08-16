@@ -1,3 +1,6 @@
 node_modules/
 .env 
-logFile.log
+dbLog.log
+portLog.log
+errorLog.log
+
