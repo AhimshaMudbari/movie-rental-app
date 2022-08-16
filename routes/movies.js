@@ -15,7 +15,8 @@ router.get(
 
 router.post(
   '/',
-  asyncMiddleware(auth, async (req, res) => {
+  auth,
+  asyncMiddleware(async (req, res) => {
     const { error } = validateMovie(req.body);
     if (error) return res.status(400).send(error.details[0].message);
 
